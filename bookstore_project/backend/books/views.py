@@ -25,7 +25,7 @@
 
 
 # class BookDeleteAPIView(APIView):
-    def delete(self, request, pk):
+    # def delete(self, request, pk):
 #         try:
 #             book = Book.objects.get(id=pk)
 #             book.delete()
@@ -34,14 +34,14 @@
 #             return Response({'error': 'Book not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
-class CartClearView(APIView):
-    def delete(self, request):
-        items = CartItem.objects.select_related('book').all()
-        for item in items:
-            item.book.stock += item.quantity
-            item.book.save()
-        items.delete()
-        return Response({'message': 'Cart cleared.'}, status=status.HTTP_200_OK)
+# class CartClearView(APIView):
+#     def delete(self, request):
+#         items = CartItem.objects.select_related('book').all()
+#         for item in items:
+#             item.book.stock += item.quantity
+#             item.book.save()
+#         items.delete()
+#         return Response({'message': 'Cart cleared.'}, status=status.HTTP_200_OK)
 
 
 # class CartView(APIView):
@@ -118,6 +118,7 @@ class CartClearView(APIView):
 #         return Response({'message': 'Order placed successfully!'}, status=status.HTTP_200_OK)
 
 from rest_framework.views import APIView
+
 from rest_framework.response import Response
 from rest_framework import status, generics
 from django.contrib.auth import authenticate, get_user_model
@@ -126,6 +127,7 @@ from .serializers import (
     BookSerializer, CategorySerializer, CartItemSerializer,
     RegisterSerializer, LoginSerializer
 )
+from rest_framework.permissions import AllowAny
 
 User = get_user_model()
 
@@ -158,24 +160,48 @@ class LoginView(APIView):
 
 
 # BOOKS
-class CategoryListAPIView(generics.ListAPIView):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
+# class CategoryListAPIView(generics.ListAPIView):
+#     queryset = Category.objects.all()
+#     serializer_class = CategorySerializer
 
 
-class BookListAPIView(generics.ListAPIView):
+# class BookListAPIView(generics.ListAPIView):
+#     serializer_class = BookSerializer
+
+#     def get_queryset(self):
+#         queryset = Book.objects.all()
+#         category = self.request.query_params.get('category')
+#         search = self.request.query_params.get('search')
+#         if category:
+#             queryset = queryset.filter(category__id=category)
+#         if search:
+#             queryset = queryset.filter(title__icontains=search)
+#         return queryset
+class BookListAPIView(generics.ListCreateAPIView):
+    queryset = Book.objects.all()
     serializer_class = BookSerializer
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         queryset = Book.objects.all()
+
         category = self.request.query_params.get('category')
         search = self.request.query_params.get('search')
+
         if category:
             queryset = queryset.filter(category__id=category)
+
         if search:
             queryset = queryset.filter(title__icontains=search)
+
         return queryset
 
+
+# CATEGORIES
+class CategoryListAPIView(generics.ListAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [AllowAny]
 
 class BookDeleteAPIView(APIView):
     def delete(self, request, pk):
@@ -187,14 +213,14 @@ class BookDeleteAPIView(APIView):
             return Response({'error': 'Book not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
-# class CartClearView(APIView):
-#     def delete(self, request):
-#         items = CartItem.objects.select_related('book').all()
-#         for item in items:
-#             item.book.stock += item.quantity
-#             item.book.save()
-#         items.delete()
-#         return Response({'message': 'Cart cleared.'}, status=status.HTTP_200_OK)
+class CartClearView(APIView):
+    def delete(self, request):
+        items = CartItem.objects.select_related('book').all()
+        for item in items:
+            item.book.stock += item.quantity
+            item.book.save()
+        items.delete()
+        return Response({'message': 'Cart cleared.'}, status=status.HTTP_200_OK)
 
 
 # CART
